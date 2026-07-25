@@ -1,232 +1,173 @@
 'use client';
-// ─── Screen 1: Patient Quick-Crisis Hub ──────────────────────────────────────
-import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { PatientStatus, LastAction } from '../types';
-import { MOCK_PATIENTS } from '../lib/ai-engine';
+import React, { useEffect } from 'react';
+import { PatientStatus, LastAction, PatientProfile } from '../types';
+import SarvamVoice from './SarvamVoice';
+import CameraCheck from './CameraCheck';
+import { useUI } from '../lib/i18n';
 
 interface Props {
+  patient: PatientProfile;     // ← wired from hook, changes when selector changes
   status: PatientStatus;
   lastAction: LastAction;
   safeLogCount: number;
+  loading: boolean;
   onCrisis: () => void;
   onUrge: () => void;
   onSafe: () => void;
-  onVoiceResult: (keyword: string) => void;
-  voiceActive: boolean;
-  setVoiceActive: (v: boolean) => void;
+  onVoiceResult: (keyword: string, transcript: string, language: string) => void;
+  selectedLanguage: string;
+  setSelectedLanguage: (lang: string) => void;
 }
 
-const patient = MOCK_PATIENTS[0];
-
 export default function PatientHub({
-  status,
-  lastAction,
-  safeLogCount,
-  onCrisis,
-  onUrge,
-  onSafe,
-  onVoiceResult,
-  voiceActive,
-  setVoiceActive,
+  patient, status, lastAction, safeLogCount, loading,
+  onCrisis, onUrge, onSafe, onVoiceResult,
+  selectedLanguage, setSelectedLanguage,
 }: Props) {
-  // use any to avoid SpeechRecognition not defined in all TS targets
-  const recognitionRef = useRef<any>(null); // eslint-disable-line
-  const [voiceError, setVoiceError] = useState('');
-  const [voiceHint, setVoiceHint] = useState('');
+  const t = useUI(selectedLanguage); // all labels update when language changes
 
-  // Status badge styling
-  const statusConfig = {
-    stable: { label: '🟢 Stable', cls: 'bg-emerald-900 text-emerald-300 border-emerald-600' },
-    struggling: { label: '🟡 Struggling', cls: 'bg-yellow-900 text-yellow-300 border-yellow-600' },
-    crisis: { label: '🔴 Crisis', cls: 'bg-red-900 text-red-300 border-red-600' },
-  };
-
-  const startVoice = useCallback(() => {
-    setVoiceError('');
-    setVoiceHint('Listening… say "help", "craving", or "safe"');
-
-    const SR =
-      typeof window !== 'undefined' &&
-      (window.SpeechRecognition || (window as any).webkitSpeechRecognition);
-
-    if (!SR) {
-      setVoiceError('Voice not supported in this browser.');
-      return;
-    }
-
-    const recognition: SpeechRecognition = new SR();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 3;
-    recognitionRef.current = recognition;
-
-    recognition.onresult = (e: Event) => {
-      const evt = e as SpeechRecognitionEvent;
-      const transcript = Array.from(evt.results)
-        .flatMap((r) => Array.from(r))
-        .map((alt) => alt.transcript.toLowerCase())
-        .join(' ');
-
-      setVoiceHint(`Heard: "${transcript}"`);
-      setVoiceActive(false);
-
-      if (/\b(help|emergency|overdose|dying)\b/.test(transcript)) onVoiceResult('crisis');
-      else if (/\b(craving|urge|want|need|alcohol|drug)\b/.test(transcript)) onVoiceResult('urge');
-      else if (/\b(safe|okay|fine|good|sober)\b/.test(transcript)) onVoiceResult('safe');
-      else setVoiceHint('Not recognised — try "help", "craving", or "safe"');
-    };
-
-    recognition.onerror = (e) => {
-      setVoiceError(`Voice error: ${e.error}`);
-      setVoiceActive(false);
-    };
-
-    recognition.onend = () => setVoiceActive(false);
-
-    setVoiceActive(true);
-    recognition.start();
-  }, [onVoiceResult, setVoiceActive]);
-
-  const stopVoice = useCallback(() => {
-    recognitionRef.current?.stop();
-    setVoiceActive(false);
-  }, [setVoiceActive]);
-
-  // Keyboard shortcuts for accessibility
+  // Keyboard shortcuts
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const fn = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
       if (e.key === '1') onCrisis();
       if (e.key === '2') onUrge();
       if (e.key === '3') onSafe();
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener('keydown', fn);
+    return () => window.removeEventListener('keydown', fn);
   }, [onCrisis, onUrge, onSafe]);
 
-  const sc = statusConfig[status];
+  // Status badge — driven by live state
+  const badge = {
+    stable:     { label: t.statusStable,     bg: '#dcfce7', color: '#166534', border: '#86efac' },
+    struggling: { label: t.statusStruggling, bg: '#fef9c3', color: '#854d0e', border: '#fde047' },
+    crisis:     { label: t.statusCrisis,     bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' },
+  }[status];
 
   return (
-    <section
-      aria-label="Patient Quick-Crisis Hub"
-      className="flex flex-col h-full bg-slate-950 text-white p-4 gap-4 overflow-y-auto"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <section aria-label="Patient Quick-Crisis Hub"
+      className="flex flex-col gap-4 p-4" style={{ backgroundColor: '#0f0f0f', minHeight: '100%' }}>
+
+      {/* Screen label */}
+      <div className="rounded-xl px-3 py-2 flex items-center justify-between border-2"
+        style={{ backgroundColor: '#1e1208', borderColor: '#c2410c' }}>
         <div>
-          <h1 className="text-lg font-bold text-slate-100 leading-tight">
-            👤 {patient.name}
-          </h1>
-          <p className="text-xs text-slate-400">Day {patient.soberDays} of recovery</p>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#f97316' }}>
+            {t.screenLabel}
+          </p>
+          <p className="text-xs" style={{ color: '#fb923c' }}>{t.screenSub}</p>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold border ${sc.cls}`}
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {sc.label}
+        <span className="ai-badge">✦ Live</span>
+      </div>
+
+      {/* Patient card — updates when patient selector changes */}
+      <div className="rounded-xl border-2 px-3 py-2 flex items-center justify-between transition-all duration-300"
+        style={{ backgroundColor: badge.bg, borderColor: badge.border }}>
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow"
+            style={{ background: 'linear-gradient(135deg, #ea580c, #c2410c)' }} aria-hidden="true">
+            {patient.name.charAt(0)}
+          </div>
+          <div>
+            <p className="text-sm font-black" style={{ color: '#f5f0eb' }}>{patient.name}</p>
+            <p className="text-xs font-medium" style={{ color: '#fb923c' }}>
+              {t.dayOf}{' '}
+              <strong style={{ color: '#059669' }}>{patient.soberDays}</strong>
+              {' · '}{patient.substanceType}
+            </p>
+          </div>
+        </div>
+        {/* Live status — updates on every button press */}
+        <span className="px-3 py-1.5 rounded-full text-xs font-black border-2 transition-all duration-300"
+          style={{ backgroundColor: badge.bg, color: badge.color, borderColor: badge.border }}
+          aria-live="polite" aria-atomic="true">
+          {badge.label}
         </span>
       </div>
 
-      {/* 🔴 Crisis Button — top half, pulsing */}
+      {/* 🆘 Crisis */}
       <button
-        onClick={onCrisis}
-        aria-label="Emergency: I need medical help now. Press 1 as keyboard shortcut."
-        className={`
-          relative flex-[2] min-h-[140px] rounded-2xl border-2 border-red-500
-          bg-gradient-to-br from-red-900 via-red-800 to-red-950
-          flex flex-col items-center justify-center gap-2
-          transition-all duration-200 active:scale-95 focus:outline-none
-          focus:ring-4 focus:ring-red-400 hover:from-red-800
-          ${status === 'crisis' ? 'ring-4 ring-red-400 animate-pulse' : ''}
-        `}
-      >
-        <span className="text-5xl" aria-hidden="true">🆘</span>
-        <span className="text-xl font-black text-red-100 text-center leading-tight px-2">
-          Emergency
-        </span>
-        <span className="text-sm text-red-300 text-center px-4">
-          I Need Medical Help Now
-        </span>
-        <span className="text-xs text-red-500 absolute top-2 right-3">[1]</span>
+        onClick={onCrisis} disabled={loading}
+        aria-label={`${t.crisisBtn} — ${t.crisisSub}. Keyboard: 1`}
+        className={`relative rounded-2xl border-2 flex flex-col items-center justify-center gap-2 focus:outline-none focus:ring-4 card-lift ${status === 'crisis' ? 'crisis-glow' : ''}`}
+        style={{
+          minHeight: '150px',
+          background: 'linear-gradient(135deg, #fff5f5, #fef2f2)',
+          borderColor: status === 'crisis' ? '#dc2626' : '#fca5a5',
+          boxShadow: '0 6px 20px rgba(220,38,38,0.2)',
+          opacity: loading ? 0.75 : 1,
+        }}>
+        <span className="text-6xl" aria-hidden="true">🆘</span>
+        <span className="text-xl font-black" style={{ color: '#991b1b' }}>{t.crisisBtn}</span>
+        <span className="text-sm font-medium text-center px-4" style={{ color: '#dc2626' }}>{t.crisisSub}</span>
+        <span className="absolute top-2 right-3 px-2 py-0.5 rounded-lg font-mono text-xs font-bold"
+          style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>[1]</span>
         {status === 'crisis' && (
-          <span className="absolute inset-0 rounded-2xl border-2 border-red-400 animate-ping opacity-30 pointer-events-none" />
+          <span className="absolute inset-0 rounded-2xl border-2 border-red-400 animate-ping opacity-20 pointer-events-none" />
         )}
       </button>
 
-      {/* 🟡 Urge + 🟢 Safe — side by side */}
-      <div className="flex gap-3 flex-1 min-h-[100px]">
+      {/* 🌊 Urge + ✅ Safe */}
+      <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={onUrge}
-          aria-label="I feel a heavy craving. Press 2 as keyboard shortcut."
-          className={`
-            flex-1 rounded-2xl border-2 border-yellow-500
-            bg-gradient-to-br from-yellow-900 via-yellow-800 to-yellow-950
-            flex flex-col items-center justify-center gap-1 p-3
-            transition-all duration-200 active:scale-95 focus:outline-none
-            focus:ring-4 focus:ring-yellow-400 hover:from-yellow-800
-            ${status === 'struggling' ? 'ring-4 ring-yellow-400' : ''}
-          `}
-        >
-          <span className="text-3xl" aria-hidden="true">🌊</span>
-          <span className="text-sm font-bold text-yellow-100 text-center leading-tight">
-            Heavy Craving
-          </span>
-          <span className="text-xs text-yellow-400 text-center">Talk Me Down</span>
-          <span className="text-xs text-yellow-600">[2]</span>
+          onClick={onUrge} disabled={loading}
+          aria-label={`${t.urgeBtn}. Keyboard: 2`}
+          className={`rounded-2xl border-2 flex flex-col items-center justify-center gap-1 p-4 focus:outline-none focus:ring-4 card-lift ${status === 'struggling' ? 'orange-glow' : ''}`}
+          style={{
+            minHeight: '110px',
+            background: 'linear-gradient(135deg, #fffdf0, #fffbeb)',
+            borderColor: status === 'struggling' ? '#d97706' : '#fde68a',
+            boxShadow: '0 4px 14px rgba(217,119,6,0.15)',
+            opacity: loading ? 0.75 : 1,
+          }}>
+          <span className="text-4xl" aria-hidden="true">🌊</span>
+          <span className="text-sm font-black text-center" style={{ color: '#92400e' }}>{t.urgeBtn}</span>
+          <span className="text-xs font-medium text-center" style={{ color: '#b45309' }}>{t.urgeSub}</span>
+          <span className="text-xs px-2 py-0.5 rounded-lg font-mono mt-1"
+            style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>[2]</span>
         </button>
 
         <button
-          onClick={onSafe}
-          aria-label="I am safe, log today's progress. Press 3 as keyboard shortcut."
-          className={`
-            flex-1 rounded-2xl border-2 border-emerald-500
-            bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950
-            flex flex-col items-center justify-center gap-1 p-3
-            transition-all duration-200 active:scale-95 focus:outline-none
-            focus:ring-4 focus:ring-emerald-400 hover:from-emerald-800
-            ${status === 'stable' && lastAction === 'safe' ? 'ring-4 ring-emerald-400' : ''}
-          `}
-        >
-          <span className="text-3xl" aria-hidden="true">✅</span>
-          <span className="text-sm font-bold text-emerald-100 text-center leading-tight">
-            I Am Safe
+          onClick={onSafe} disabled={loading}
+          aria-label={`${t.safeBtn}. Keyboard: 3`}
+          className="rounded-2xl border-2 flex flex-col items-center justify-center gap-1 p-4 focus:outline-none focus:ring-4 card-lift"
+          style={{
+            minHeight: '110px',
+            background: lastAction === 'safe'
+              ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)'
+              : 'linear-gradient(135deg, #f7fffa, #f0fdf4)',
+            borderColor: lastAction === 'safe' ? '#059669' : '#86efac',
+            boxShadow: '0 4px 14px rgba(5,150,105,0.12)',
+            opacity: loading ? 0.75 : 1,
+          }}>
+          <span className="text-4xl" aria-hidden="true">✅</span>
+          <span className="text-sm font-black text-center" style={{ color: '#065f46' }}>{t.safeBtn}</span>
+          <span className="text-xs font-medium text-center" style={{ color: '#047857' }}>
+            {t.safeSub} {safeLogCount > 0 ? `(${safeLogCount}${t.logCount})` : ''}
           </span>
-          <span className="text-xs text-emerald-400 text-center">
-            Log Progress {safeLogCount > 0 ? `(${safeLogCount})` : ''}
-          </span>
-          <span className="text-xs text-emerald-600">[3]</span>
+          <span className="text-xs px-2 py-0.5 rounded-lg font-mono mt-1"
+            style={{ backgroundColor: '#dcfce7', color: '#065f46' }}>[3]</span>
         </button>
       </div>
 
-      {/* 🎤 Voice Node */}
-      <div className="flex flex-col items-center gap-1">
-        <button
-          onPointerDown={startVoice}
-          onPointerUp={stopVoice}
-          onPointerLeave={stopVoice}
-          aria-label={voiceActive ? 'Listening — release to stop' : 'Hold to speak: say help, craving, or safe'}
-          aria-pressed={voiceActive}
-          className={`
-            w-16 h-16 rounded-full border-2 flex items-center justify-center
-            transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-400
-            ${voiceActive
-              ? 'bg-blue-600 border-blue-400 scale-110 animate-pulse shadow-lg shadow-blue-500/50'
-              : 'bg-slate-800 border-slate-600 hover:bg-slate-700'
-            }
-          `}
-        >
-          <span className="text-2xl" aria-hidden="true">{voiceActive ? '🔴' : '🎤'}</span>
-        </button>
-        {voiceHint && (
-          <p className="text-xs text-blue-300 text-center" aria-live="polite">{voiceHint}</p>
-        )}
-        {voiceError && (
-          <p className="text-xs text-red-400 text-center" role="alert">{voiceError}</p>
-        )}
-        {!voiceHint && !voiceError && (
-          <p className="text-xs text-slate-500 text-center">Hold mic · say &ldquo;help&rdquo;, &ldquo;craving&rdquo;, &ldquo;safe&rdquo;</p>
-        )}
-      </div>
+      {loading && (
+        <div className="rounded-xl border-2 px-3 py-2 text-center text-sm font-bold slide-down"
+          style={{ backgroundColor: '#1e1208', borderColor: '#c2410c', color: '#f97316' }}
+          aria-live="polite">
+          {t.loading}
+        </div>
+      )}
+
+      <SarvamVoice
+        onResult={onVoiceResult}
+        selectedLanguage={selectedLanguage}
+        setSelectedLanguage={setSelectedLanguage}
+        disabled={loading}
+      />
+
+      <CameraCheck language={selectedLanguage} />
     </section>
   );
 }

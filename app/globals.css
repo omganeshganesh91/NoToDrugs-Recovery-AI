@@ -2,8 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Base ─────────────────────────────────────────────────────────────────── */
+/* ── Brand: Dark theme with Indian Orange accents ─────────────────────────── */
 :root {
+  --orange:        #f97316;
+  --orange-light:  #1e1208;
+  --orange-mid:    #2a1a0a;
+  --orange-border: #c2410c;
+  --orange-dark:   #fb923c;
+  --bg:            #0f0f0f;
+  --surface:       #1a1a1a;
+  --text:          #f5f0eb;
+  --text-muted:    #a8896b;
   color-scheme: dark;
 }
 
@@ -11,77 +20,96 @@ html, body, #__next {
   height: 100%;
   margin: 0;
   padding: 0;
+  background: var(--bg);
+  /* Rich dark gradient background */
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(234, 88, 12, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(15, 15, 15, 1) 0%, #0a0a0a 100%);
+  background-attachment: fixed;
 }
 
-/* ── Scrollbar styling ────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: #c2410c; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #f97316; }
 
-/* ── Focus visible ────────────────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
+/* ── Focus ring ───────────────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid #ea580c; outline-offset: 2px; }
 
 /* ── Reduce motion ────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* ── Custom pulse ring for crisis button ──────────────────────────────────── */
-@keyframes crisis-ring {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-  50% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0); }
+/* ── GenAI shimmer badge ──────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.ai-badge {
+  background: linear-gradient(90deg, #ea580c, #7c3aed, #0891b2, #059669, #ea580c);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+  font-weight: 800;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.crisis-pulse {
-  animation: crisis-ring 1.5s ease-in-out infinite;
+/* ── Crisis glow pulse ────────────────────────────────────────────────────── */
+@keyframes crisis-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); }
+  50%       { box-shadow: 0 0 0 16px rgba(220,38,38,0); }
 }
+.crisis-glow { animation: crisis-glow 1.4s ease-in-out infinite; }
 
-/* ── Smooth slide-in for caregiver alert ──────────────────────────────────── */
+/* ── Orange glow pulse (urge) ─────────────────────────────────────────────── */
+@keyframes orange-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(234,88,12,0.45); }
+  50%       { box-shadow: 0 0 0 14px rgba(234,88,12,0); }
+}
+.orange-glow { animation: orange-glow 1.6s ease-in-out infinite; }
+
+/* ── Slide in ─────────────────────────────────────────────────────────────── */
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.alert-enter {
-  animation: slideDown 0.35s ease-out forwards;
-}
+.slide-down { animation: slideDown 0.3s ease-out forwards; }
 
-/* ── Screen reader only utility ───────────────────────────────────────────── */
+/* ── Card hover lift ──────────────────────────────────────────────────────── */
+.card-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.card-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(234,88,12,0.18); }
+.card-lift:active { transform: scale(0.97); }
+
+/* ── Orange button base ───────────────────────────────────────────────────── */
+.btn-orange {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.btn-orange:hover { background: linear-gradient(135deg, #c2410c, #9a3412); transform: translateY(-1px); }
+
+/* ── Screen reader ────────────────────────────────────────────────────────── */
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
 }
 .focus\:not-sr-only:focus {
-  position: static;
-  width: auto;
-  height: auto;
-  padding: 0;
-  margin: 0;
-  overflow: visible;
-  clip: auto;
-  white-space: normal;
+  position: static; width: auto; height: auto;
+  padding: 0; margin: 0; overflow: visible; clip: auto; white-space: normal;
 }

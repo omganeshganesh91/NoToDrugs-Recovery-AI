@@ -1,37 +1,28 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
-  title: "NoToDrugs-Recovery-AI — AI-Powered Crisis & Prevention",
+  title: 'Recovery Platform — AI-Powered Crisis & Prevention',
   description:
-    "A multi-modal, GenAI-powered recovery and prevention platform for individuals navigating substance use disorders and their caregivers.",
-  keywords: [
-    "recovery",
-    "substance use",
-    "crisis support",
-    "caregiver",
-    "naloxone",
-  ],
+    'A multi-modal, GenAI-powered recovery and prevention platform for individuals navigating substance use disorders and their caregivers.',
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
-  themeColor: "#0f172a",
+  themeColor: '#fdf8f3',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark h-full">
+    // No "dark" class — this is a warm LIGHT theme
+    <html lang="en" className="h-full">
       <body
-        className={`${inter.className} h-full bg-slate-950 overflow-hidden`}
+        className={`${inter.className} min-h-full overflow-x-hidden`}
+        style={{ backgroundColor: '#fdf8f3', color: '#2d1f14' }}
       >
         {children}
       </body>

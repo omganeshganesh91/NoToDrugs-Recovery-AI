@@ -1,15 +1,15 @@
 'use client';
 // ─── Central App State Hook ───────────────────────────────────────────────────
-import { useReducer, useCallback, useRef } from 'react';
+
+import { useReducer, useCallback, useState } from 'react';
 import { AppState, LastAction, PatientStatus } from '../types';
 import { generateAIScript, MOCK_PATIENTS } from '../lib/ai-engine';
+import { PatientProfile } from '../types';
 
 type Action =
-  | { type: 'TRIGGER_CRISIS' }
-  | { type: 'TRIGGER_URGE' }
-  | { type: 'TRIGGER_SAFE' }
+  | { type: 'TRIGGER'; event: LastAction; script: string }
+  | { type: 'SET_SCRIPT'; script: string }
   | { type: 'CLOSE_INTERVENTION' }
-  | { type: 'SET_VOICE_ACTIVE'; payload: boolean }
   | { type: 'RESET' };
 
 const INITIAL_STATE: AppState = {
@@ -23,50 +23,29 @@ const INITIAL_STATE: AppState = {
   safeLogCount: 0,
 };
 
-function mapActionToStatus(action: LastAction): PatientStatus {
+function mapToStatus(action: LastAction): PatientStatus {
   if (action === 'crisis') return 'crisis';
   if (action === 'urge') return 'struggling';
   return 'stable';
 }
 
 function appReducer(state: AppState, action: Action): AppState {
-  const patient = MOCK_PATIENTS[0]; // default patient; switchable in UI
   switch (action.type) {
-    case 'TRIGGER_CRISIS':
+    case 'TRIGGER':
       return {
         ...state,
-        patientStatus: 'crisis',
-        lastAction: 'crisis',
+        patientStatus: mapToStatus(action.event),
+        lastAction: action.event,
         timestamp: new Date(),
-        interventionOpen: false,
-        caregiverAlerted: true,
-        aiScript: generateAIScript('crisis', patient),
+        interventionOpen: action.event === 'urge',
+        caregiverAlerted: action.event !== 'safe',
+        aiScript: action.script,
+        safeLogCount: action.event === 'safe' ? state.safeLogCount + 1 : state.safeLogCount,
       };
-    case 'TRIGGER_URGE':
-      return {
-        ...state,
-        patientStatus: 'struggling',
-        lastAction: 'urge',
-        timestamp: new Date(),
-        interventionOpen: true,
-        caregiverAlerted: true,
-        aiScript: generateAIScript('urge', patient),
-      };
-    case 'TRIGGER_SAFE':
-      return {
-        ...state,
-        patientStatus: 'stable',
-        lastAction: 'safe',
-        timestamp: new Date(),
-        interventionOpen: false,
-        caregiverAlerted: false,
-        aiScript: generateAIScript('safe', patient),
-        safeLogCount: state.safeLogCount + 1,
-      };
+    case 'SET_SCRIPT':
+      return { ...state, aiScript: action.script };
     case 'CLOSE_INTERVENTION':
       return { ...state, interventionOpen: false };
-    case 'SET_VOICE_ACTIVE':
-      return { ...state, voiceActive: action.payload };
     case 'RESET':
       return { ...INITIAL_STATE };
     default:
@@ -75,27 +54,80 @@ function appReducer(state: AppState, action: Action): AppState {
 }
 
 export function useAppState() {
-  const [state, dispatch] = useReducer(appReducer, INITIAL_STATE);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [state, dispatch]                       = useReducer(appReducer, INITIAL_STATE);
+  const [loading, setLoading]                   = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en-IN');
+  // FIXED: selectedPatientId is controlled state — patient selector is wired
+  const [selectedPatientId, setSelectedPatientId] = useState(MOCK_PATIENTS[0].id);
 
-  const triggerCrisis = useCallback(() => dispatch({ type: 'TRIGGER_CRISIS' }), []);
-  const triggerUrge = useCallback(() => dispatch({ type: 'TRIGGER_URGE' }), []);
-  const triggerSafe = useCallback(() => dispatch({ type: 'TRIGGER_SAFE' }), []);
-  const closeIntervention = useCallback(() => dispatch({ type: 'CLOSE_INTERVENTION' }), []);
-  const setVoiceActive = useCallback(
-    (active: boolean) => dispatch({ type: 'SET_VOICE_ACTIVE', payload: active }),
-    []
+  // Derive active patient from id — updates instantly when selector changes
+  const patient: PatientProfile =
+    MOCK_PATIENTS.find((p) => p.id === selectedPatientId) ?? MOCK_PATIENTS[0];
+
+  const triggerEvent = useCallback(
+    async (eventType: LastAction) => {
+      setLoading(true);
+      // Optimistic local script immediately
+      const localScript = generateAIScript(eventType, patient);
+      dispatch({ type: 'TRIGGER', event: eventType, script: localScript });
+
+      try {
+        // Sarvam-30B script with language translation
+        const scriptRes = await fetch('/api/sarvam/script', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: patient.id,
+            eventType,
+            language: selectedLanguage,
+          }),
+        });
+        if (scriptRes.ok) {
+          const { script } = await scriptRes.json();
+          if (script) dispatch({ type: 'SET_SCRIPT', script });
+        }
+
+        // Log to Neon DB (non-blocking)
+        fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: patient.id,
+            patientName: patient.name,
+            substance: patient.substanceType,
+            eventType,
+            soberDays: patient.soberDays,
+            language: selectedLanguage,
+            aiResponse: localScript,
+          }),
+        }).catch(console.error);
+      } catch (err) {
+        console.error('triggerEvent error', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [patient, selectedLanguage]
   );
+
+  const triggerCrisis = useCallback(() => triggerEvent('crisis'), [triggerEvent]);
+  const triggerUrge   = useCallback(() => triggerEvent('urge'),   [triggerEvent]);
+  const triggerSafe   = useCallback(() => triggerEvent('safe'),   [triggerEvent]);
+  const closeIntervention = useCallback(() => dispatch({ type: 'CLOSE_INTERVENTION' }), []);
   const reset = useCallback(() => dispatch({ type: 'RESET' }), []);
 
   return {
     state,
+    loading,
+    patient,           // ← exposed so all screens use the same reactive patient
+    selectedPatientId,
+    setSelectedPatientId,
+    selectedLanguage,
+    setSelectedLanguage,
     triggerCrisis,
     triggerUrge,
     triggerSafe,
     closeIntervention,
-    setVoiceActive,
     reset,
-    audioRef,
   };
 }

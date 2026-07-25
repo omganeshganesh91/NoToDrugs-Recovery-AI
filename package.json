@@ -10,9 +10,11 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "next": "14.2.5",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "sarvam-conv-ai-sdk": "^0.0.42"
   },
   "devDependencies": {
     "@types/dom-speech-recognition": "^0.0.12",
