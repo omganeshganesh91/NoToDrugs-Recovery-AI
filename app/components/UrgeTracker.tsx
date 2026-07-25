@@ -12,9 +12,9 @@ interface Props {
 }
 
 const eventStyle = {
-  crisis:  { bg: '#fff1f2', border: '#fca5a5', color: '#991b1b', icon: '🆘' },
-  urge:    { bg: '#fffbeb', border: '#fde68a', color: '#92400e', icon: '🌊' },
-  safe:    { bg: '#f0fdf4', border: '#86efac', color: '#166534', icon: '✅' },
+  crisis:  { bg: '#1a0808', border: '#7f1d1d', color: '#f87171', icon: '🆘' },
+  urge:    { bg: '#1a1500', border: '#78350f', color: '#fbbf24', icon: '🌊' },
+  safe:    { bg: '#071a0e', border: '#14532d', color: '#34d399', icon: '✅' },
 };
 
 export default function UrgeTracker({ patientId, refreshTrigger }: Props) {
@@ -49,12 +49,12 @@ export default function UrgeTracker({ patientId, refreshTrigger }: Props) {
   return (
     <div
       className="rounded-xl border p-4"
-      style={{ backgroundColor: '#ffffff', borderColor: '#e8d5c4' }}
+      style={{ backgroundColor: '#141414', borderColor: '#2d1a0a' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#7c3aed' }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#a78bfa' }}>
             📊 Urge Tracker · Neon DB
           </p>
           <span className="text-xs ai-badge">✦ Live</span>
@@ -63,7 +63,7 @@ export default function UrgeTracker({ patientId, refreshTrigger }: Props) {
           onClick={fetchHistory}
           disabled={loading}
           className="text-xs px-2 py-1 rounded-lg border font-medium focus:outline-none focus:ring-2"
-          style={{ backgroundColor: '#f3f4f6', borderColor: '#d1d5db', color: '#374151' }}
+          style={{ backgroundColor: '#1a1a1a', borderColor: '#374151', color: '#d1d5db' }}
           aria-label="Refresh event history"
         >
           {loading ? '⏳' : '↺ Refresh'}
@@ -99,7 +99,7 @@ export default function UrgeTracker({ patientId, refreshTrigger }: Props) {
       )}
 
       {!loading && !error && events.length === 0 && (
-        <p className="text-xs text-center py-3" style={{ color: '#a8a29e' }}>
+        <p className="text-xs text-center py-3" style={{ color: '#6b5040' }}>
           No events yet — start using the platform to build your history
         </p>
       )}
@@ -120,10 +120,10 @@ export default function UrgeTracker({ patientId, refreshTrigger }: Props) {
                 <span className="font-semibold capitalize" style={{ color: s.color }}>
                   {ev.event_type}
                 </span>
-                <span style={{ color: '#78716c' }}>·</span>
-                <span style={{ color: '#78716c' }}>Day {ev.sober_days}</span>
-                <span style={{ color: '#78716c' }}>·</span>
-                <span style={{ color: '#78716c' }}>{ev.language}</span>
+                <span style={{ color: '#6b5040' }}>·</span>
+                <span style={{ color: '#6b5040' }}>Day {ev.sober_days}</span>
+                <span style={{ color: '#6b5040' }}>·</span>
+                <span style={{ color: '#6b5040' }}>{ev.language}</span>
                 <span className="ml-auto font-mono text-xs" style={{ color: s.color, opacity: 0.7 }}>
                   {date} {time}
                 </span>

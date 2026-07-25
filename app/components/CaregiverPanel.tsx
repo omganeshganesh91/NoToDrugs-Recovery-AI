@@ -47,41 +47,41 @@ export default function CaregiverPanel({
   // Dynamic alert banner — updates instantly on every patient action
   const alert = {
     stable: {
-      bg: '#f0fdf4', border: '#86efac', leftBorder: '#059669', color: '#166534',
+      bg: '#071a0e', border: '#14532d', leftBorder: '#059669', color: '#34d399',
       label: t.cgAlertStable,
     },
     struggling: {
-      bg: '#fffbeb', border: '#fde68a', leftBorder: '#d97706', color: '#854d0e',
+      bg: '#1a1500', border: '#78350f', leftBorder: '#d97706', color: '#fbbf24',
       label: t.cgAlertStruggling,
     },
     crisis: {
-      bg: '#fff1f2', border: '#fca5a5', leftBorder: '#dc2626', color: '#991b1b',
+      bg: '#1a0808', border: '#7f1d1d', leftBorder: '#dc2626', color: '#f87171',
       label: t.cgAlertCrisis,
     },
   }[status];
 
   const contactColors: Record<string, { bg: string; border: string; color: string; icon: string }> = {
-    emergency: { bg: '#fff1f2', border: '#fca5a5', color: '#991b1b', icon: '🚨' },
-    support:   { bg: '#fff7ed', border: '#fb923c', color: '#9a3412', icon: '💬' },
-    detox:     { bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af', icon: '🏥' },
+    emergency: { bg: '#1a0808', border: '#7f1d1d', color: '#f87171', icon: '🚨' },
+    support:   { bg: '#1e1208', border: '#c2410c', color: '#fb923c', icon: '💬' },
+    detox:     { bg: '#0c1a2e', border: '#1e40af', color: '#93c5fd', icon: '🏥' },
   };
 
   return (
     <section
       aria-label="Caregiver Guardian Panel"
       className="flex flex-col"
-      style={{ backgroundColor: '#fffdf9', minHeight: '100%' }}
+      style={{ backgroundColor: '#0f0f0f', minHeight: '100%' }}
     >
       {/* Screen label */}
       <div
         className="px-4 py-2 flex items-center justify-between border-b-2"
-        style={{ backgroundColor: '#fff7ed', borderColor: '#fb923c' }}
+        style={{ backgroundColor: '#141414', borderColor: '#2d1a0a' }}
       >
         <div>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#ea580c' }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#f97316' }}>
             {t.cgScreenLabel}
           </p>
-          <p className="text-xs" style={{ color: '#9a3412' }}>
+          <p className="text-xs" style={{ color: '#fb923c' }}>
             {t.cgScreenSub}
           </p>
         </div>
@@ -117,7 +117,7 @@ export default function CaregiverPanel({
         {/* Patient context */}
         <div
           className="rounded-xl border-2 px-3 py-2 flex items-center justify-between"
-          style={{ backgroundColor: '#ffffff', borderColor: '#fed7aa' }}
+          style={{ backgroundColor: '#1a1a1a', borderColor: '#2d1a0a' }}
         >
           <div className="flex items-center gap-2">
             <div
@@ -128,16 +128,16 @@ export default function CaregiverPanel({
               {patient.name.charAt(0)}
             </div>
             <div>
-              <p className="text-sm font-black" style={{ color: '#1c0a00' }}>{patient.name}</p>
-              <p className="text-xs" style={{ color: '#78350f' }}>
+              <p className="text-sm font-black" style={{ color: '#f5f0eb' }}>{patient.name}</p>
+              <p className="text-xs" style={{ color: '#fb923c' }}>
                 Din {patient.soberDays} · {patient.substanceType}
               </p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-xs" style={{ color: '#9a3412' }}>Last action</p>
+            <p className="text-xs" style={{ color: '#a8896b' }}>Last action</p>
             <p className="text-sm font-black capitalize" style={{
-              color: lastAction === 'crisis' ? '#dc2626' : lastAction === 'urge' ? '#d97706' : '#059669',
+              color: lastAction === 'crisis' ? '#f87171' : lastAction === 'urge' ? '#fbbf24' : '#34d399',
             }}>
               {lastAction === 'idle' ? 'Kuch nahi' : lastAction}
             </p>
@@ -148,7 +148,7 @@ export default function CaregiverPanel({
         <div ref={scriptRef}>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#ea580c' }}>
+              <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#f97316' }}>
                 🤖 Sarvam AI Script
               </p>
               <span className="ai-badge">✦ Personalised</span>
@@ -158,9 +158,9 @@ export default function CaregiverPanel({
                 onClick={handleCopy}
                 className="text-xs px-2.5 py-1 rounded-lg border-2 font-bold transition-colors focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: copied ? '#dcfce7' : '#fff7ed',
-                  borderColor: copied ? '#86efac' : '#fb923c',
-                  color: copied ? '#166534' : '#ea580c',
+                  backgroundColor: copied ? '#071a0e' : '#1e1208',
+                  borderColor: copied ? '#059669' : '#c2410c',
+                  color: copied ? '#34d399' : '#f97316',
                 }}
                 aria-label="Copy script to clipboard"
               >
@@ -172,24 +172,24 @@ export default function CaregiverPanel({
           <div
             className="rounded-xl border-2 transition-all duration-500 min-h-[100px]"
             style={{
-              backgroundColor: '#ffffff',
-              borderColor: caregiverAlerted && aiScript ? '#fb923c' : '#fed7aa',
+              backgroundColor: '#1a1a1a',
+              borderColor: caregiverAlerted && aiScript ? '#c2410c' : '#2d1a0a',
               borderLeftWidth: '4px',
-              borderLeftColor: caregiverAlerted && aiScript ? '#ea580c' : '#fed7aa',
-              boxShadow: caregiverAlerted && aiScript ? '0 4px 20px rgba(234,88,12,0.18)' : 'none',
+              borderLeftColor: caregiverAlerted && aiScript ? '#f97316' : '#2d1a0a',
+              boxShadow: caregiverAlerted && aiScript ? '0 4px 20px rgba(234,88,12,0.25)' : 'none',
             }}
             aria-live="polite"
             aria-atomic="true"
           >
             {aiScript ? (
-              <pre className="p-4 text-xs leading-relaxed whitespace-pre-wrap font-sans" style={{ color: '#1c0a00' }}>
+              <pre className="p-4 text-xs leading-relaxed whitespace-pre-wrap font-sans" style={{ color: '#f5f0eb' }}>
                 {aiScript}
               </pre>
             ) : (
-              <div className="p-6 flex flex-col items-center justify-center gap-2" style={{ color: '#d4a574' }}>
+              <div className="p-6 flex flex-col items-center justify-center gap-2" style={{ color: '#a8896b' }}>
                 <span className="text-3xl" aria-hidden="true">💬</span>
                 <p className="text-sm text-center font-medium">Patient ka intezaar hai…</p>
-                <p className="text-xs text-center" style={{ color: '#c2967a' }}>
+                <p className="text-xs text-center" style={{ color: '#6b5040' }}>
                   Jaise hi patient button dabayega, Sarvam AI personalised script yahan likhega.
                 </p>
               </div>
@@ -199,7 +199,7 @@ export default function CaregiverPanel({
 
         {/* Rapid Call Dashboard — Real Indian numbers */}
         <div>
-          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: '#1c0a00' }}>
+          <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: '#f97316' }}>
             📞 Emergency Call Dashboard
           </p>
           <div className="flex flex-col gap-2">
@@ -230,17 +230,17 @@ export default function CaregiverPanel({
             role="alert"
             className="rounded-xl border-2 p-4 slide-down"
             style={{
-              backgroundColor: '#fff1f2',
-              borderColor: '#f87171',
+              backgroundColor: '#1a0808',
+              borderColor: '#7f1d1d',
               borderLeftWidth: '5px',
               borderLeftColor: '#dc2626',
-              boxShadow: '0 4px 20px rgba(220,38,38,0.2)',
+              boxShadow: '0 4px 20px rgba(220,38,38,0.25)',
             }}
           >
-            <p className="font-black text-sm mb-3" style={{ color: '#991b1b' }}>
+            <p className="font-black text-sm mb-3" style={{ color: '#f87171' }}>
               ⚠️ TURANT KARNE WALE KAAM
             </p>
-            <ol className="space-y-2 text-sm" style={{ color: '#b91c1c' }}>
+            <ol className="space-y-2 text-sm" style={{ color: '#fca5a5' }}>
               {[
                 '112 call karein — "possible overdose" bolen aur apna pata den',
                 'Patient ko akela BILKUL mat chhodein',

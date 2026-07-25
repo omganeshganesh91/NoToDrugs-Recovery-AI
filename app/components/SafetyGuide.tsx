@@ -39,8 +39,8 @@ interface Card {
 const CARDS: Record<LastAction, Card[]> = {
   idle: [{
     id: 'welcome', icon: '💙', title: 'Welcome — How This Platform Works',
-    badge: 'GETTING STARTED', badgeBg: '#eff6ff', badgeColor: '#1d4ed8',
-    borderColor: '#bfdbfe', headerBg: '#f0f9ff',
+    badge: 'GETTING STARTED', badgeBg: '#0c1a2e', badgeColor: '#93c5fd',
+    borderColor: '#1e40af', headerBg: '#080f1a',
     steps: [
       { icon: '🔴', text: 'Press Emergency if you or someone needs immediate medical help' },
       { icon: '🌊', text: 'Press Craving to open the AI breathing & grounding tool instantly' },
@@ -53,8 +53,8 @@ const CARDS: Record<LastAction, Card[]> = {
   crisis: [
     {
       id: 'naloxone', icon: '💊', title: 'How to Administer Naloxone (Narcan)',
-      badge: 'EMERGENCY GUIDE', badgeBg: '#fff1f2', badgeColor: '#991b1b',
-      borderColor: '#fca5a5', headerBg: '#fff5f5',
+      badge: 'EMERGENCY GUIDE', badgeBg: '#1a0808', badgeColor: '#f87171',
+      borderColor: '#7f1d1d', headerBg: '#160606',
       steps: [
         { icon: '1️⃣', text: 'Call 112 immediately — say "possible overdose" and give your address' },
         { icon: '2️⃣', text: 'Lay person on back · tilt head back to open airway' },
@@ -66,8 +66,8 @@ const CARDS: Record<LastAction, Card[]> = {
     },
     {
       id: 'first-aid', icon: '🩺', title: 'First Aid Quick Card',
-      badge: 'FIRST RESPONSE', badgeBg: '#fff7ed', badgeColor: '#9a3412',
-      borderColor: '#fdba74', headerBg: '#fff7f0',
+      badge: 'FIRST RESPONSE', badgeBg: '#1e1208', badgeColor: '#fb923c',
+      borderColor: '#c2410c', headerBg: '#180e06',
       steps: [
         { icon: '👀', text: 'Check consciousness — call name, tap shoulders firmly' },
         { icon: '🫁', text: 'Check breathing — look for chest rise, listen, feel for airflow' },
@@ -80,8 +80,8 @@ const CARDS: Record<LastAction, Card[]> = {
   urge: [
     {
       id: 'triggers', icon: '🧠', title: 'Identifying Environmental Triggers',
-      badge: 'URGE MANAGEMENT', badgeBg: '#fffbeb', badgeColor: '#92400e',
-      borderColor: '#fde68a', headerBg: '#fffcf0',
+      badge: 'URGE MANAGEMENT', badgeBg: '#1a1500', badgeColor: '#fbbf24',
+      borderColor: '#78350f', headerBg: '#141000',
       steps: [
         { icon: '👁️', text: 'VISUAL: Remove bottles, paraphernalia, or associated items from sight' },
         { icon: '👃', text: 'SMELL: Certain scents trigger cravings — change rooms or open a window' },
@@ -93,8 +93,8 @@ const CARDS: Record<LastAction, Card[]> = {
     },
     {
       id: 'deescalation', icon: '🤝', title: 'De-escalation Protocols for Families',
-      badge: 'CAREGIVER GUIDE', badgeBg: '#faf5ff', badgeColor: '#6b21a8',
-      borderColor: '#d8b4fe', headerBg: '#fdf4ff',
+      badge: 'CAREGIVER GUIDE', badgeBg: '#130a1f', badgeColor: '#c084fc',
+      borderColor: '#6b21a8', headerBg: '#0f0716',
       steps: [
         { icon: '🤫', text: 'LOWER YOUR VOICE — speak slowly and calmly. Anxiety is contagious.' },
         { icon: '🧎', text: 'GET TO THEIR LEVEL — sit down with them, do not stand over them' },
@@ -108,8 +108,8 @@ const CARDS: Record<LastAction, Card[]> = {
   safe: [
     {
       id: 'mindfulness', icon: '🌱', title: 'Celebrating Your Progress: Mindfulness Tips',
-      badge: 'MILESTONE GUIDE', badgeBg: '#f0fdf4', badgeColor: '#166534',
-      borderColor: '#86efac', headerBg: '#f7fff7',
+      badge: 'MILESTONE GUIDE', badgeBg: '#071a0e', badgeColor: '#34d399',
+      borderColor: '#14532d', headerBg: '#051208',
       steps: [
         { icon: '🌅', text: 'MORNING ANCHOR: 5 deep breaths before getting out of bed — set your intention' },
         { icon: '📓', text: 'GRATITUDE LOG: Write 3 good things from today that didn\'t involve substances' },
@@ -121,8 +121,8 @@ const CARDS: Record<LastAction, Card[]> = {
     },
     {
       id: 'longterm', icon: '🎯', title: 'Long-Term Recovery Strategies',
-      badge: 'SUSTAINED RECOVERY', badgeBg: '#f0fdfa', badgeColor: '#134e4a',
-      borderColor: '#5eead4', headerBg: '#f0fffd',
+      badge: 'SUSTAINED RECOVERY', badgeBg: '#071a17', badgeColor: '#2dd4bf',
+      borderColor: '#0f766e', headerBg: '#051210',
       steps: [
         { icon: '👥', text: 'COMMUNITY: Regular AA/NA/SMART Recovery meetings — connection is medicine' },
         { icon: '🏥', text: 'MEDICAL: Monthly check-ins with your MAT provider — medication matters' },
@@ -145,10 +145,10 @@ export default function SafetyGuide({ lastAction }: Props) {
   const card = cards[activeCard] ?? cards[0];
 
   const sectionLabels: Record<LastAction, { label: string; color: string; bg: string }> = {
-    idle:   { label: 'Getting Started', color: '#1d4ed8', bg: '#eff6ff' },
-    crisis: { label: '🔴 Crisis Resources',  color: '#991b1b', bg: '#fff1f2' },
-    urge:   { label: '🌊 Urge Management',   color: '#92400e', bg: '#fffbeb' },
-    safe:   { label: '✅ Recovery Growth',   color: '#166534', bg: '#f0fdf4' },
+    idle:   { label: 'Getting Started', color: '#93c5fd', bg: '#0c1a2e' },
+    crisis: { label: '🔴 Crisis Resources',  color: '#f87171', bg: '#1a0808' },
+    urge:   { label: '🌊 Urge Management',   color: '#fbbf24', bg: '#1a1500' },
+    safe:   { label: '✅ Recovery Growth',   color: '#34d399', bg: '#071a0e' },
   };
   const sec = sectionLabels[lastAction];
 
@@ -156,12 +156,12 @@ export default function SafetyGuide({ lastAction }: Props) {
     <section
       aria-label="Screen 4 — Contextual Safety Guide"
       className="border-t p-4"
-      style={{ backgroundColor: '#fdf8f3', borderColor: '#e8d5c4' }}
+      style={{ backgroundColor: '#0f0f0f', borderColor: '#2d1a0a' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#5c3d2e' }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#fb923c' }}>
             📚 Screen 4 · Safety Guide
           </p>
           <span className="ai-badge">✦ Contextual</span>
@@ -178,7 +178,7 @@ export default function SafetyGuide({ lastAction }: Props) {
       {/* Context explanation */}
       <div
         className="rounded-lg px-3 py-2 border text-xs mb-3"
-        style={{ backgroundColor: '#fff7ed', borderColor: '#fed7aa', color: '#7c3a1e' }}
+        style={{ backgroundColor: '#1e1208', borderColor: '#c2410c', color: '#fb923c' }}
       >
         <strong>How GenAI powers this:</strong> Cards change automatically based on the last button pressed.
         Crisis → Naloxone. Urge → Triggers. Safe → Mindfulness. In production, AI generates these for each patient.
@@ -196,10 +196,10 @@ export default function SafetyGuide({ lastAction }: Props) {
               onClick={() => setActiveCard(i)}
               className="flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all focus:outline-none focus:ring-2"
               style={{
-                backgroundColor: i === activeCard ? '#ffffff' : '#fdf8f3',
-                borderColor: i === activeCard ? card.borderColor : '#e8d5c4',
-                color: i === activeCard ? '#2d1f14' : '#8c6f5e',
-                boxShadow: i === activeCard ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+                backgroundColor: i === activeCard ? '#1a1a1a' : '#0f0f0f',
+                borderColor: i === activeCard ? card.borderColor : '#2d1a0a',
+                color: i === activeCard ? '#f5f0eb' : '#6b5040',
+                boxShadow: i === activeCard ? '0 2px 8px rgba(0,0,0,0.4)' : 'none',
               }}
             >
               {c.icon} {c.title.split(':')[0].slice(0, 18)}
@@ -214,7 +214,7 @@ export default function SafetyGuide({ lastAction }: Props) {
         role="tabpanel"
         aria-label={card.title}
         className="rounded-xl border-2 overflow-hidden transition-all duration-300"
-        style={{ backgroundColor: '#ffffff', borderColor: card.borderColor }}
+        style={{ backgroundColor: '#141414', borderColor: card.borderColor }}
       >
         {/* Card header */}
         <div
@@ -223,7 +223,7 @@ export default function SafetyGuide({ lastAction }: Props) {
         >
           <div className="flex items-center gap-2">
             <span className="text-xl" aria-hidden="true">{card.icon}</span>
-            <h3 className="text-sm font-black" style={{ color: '#1c1917' }}>{card.title}</h3>
+            <h3 className="text-sm font-black" style={{ color: '#f5f0eb' }}>{card.title}</h3>
           </div>
           <span
             className="text-xs px-2 py-0.5 rounded-full font-bold border whitespace-nowrap"
