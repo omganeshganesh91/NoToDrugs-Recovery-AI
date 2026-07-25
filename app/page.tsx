@@ -1,113 +1,215 @@
-import Image from "next/image";
+"use client";
+// ─── Recovery & Prevention Platform — Main Page ───────────────────────────────
+import React, { useState } from "react";
+import { useAppState } from "./hooks/useAppState";
+import PatientHub from "./components/PatientHub";
+import CaregiverPanel from "./components/CaregiverPanel";
+import InterventionView from "./components/InterventionView";
+import SafetyGuide from "./components/SafetyGuide";
+import { MOCK_PATIENTS } from "./lib/ai-engine";
+import { generateAIScript } from "./lib/ai-engine";
+import { PatientProfile } from "./types";
 
-export default function Home() {
+// View toggle for mobile
+type MobileView = "patient" | "caregiver";
+
+export default function RecoveryPlatform() {
+  const {
+    state,
+    triggerCrisis,
+    triggerUrge,
+    triggerSafe,
+    closeIntervention,
+    setVoiceActive,
+    reset,
+  } = useAppState();
+
+  const [mobileView, setMobileView] = useState<MobileView>("patient");
+  const [selectedPatientId, setSelectedPatientId] = useState(
+    MOCK_PATIENTS[0].id,
+  );
+
+  // Handle voice keyword routing
+  const handleVoiceResult = (keyword: string) => {
+    if (keyword === "crisis") triggerCrisis();
+    else if (keyword === "urge") triggerUrge();
+    else if (keyword === "safe") triggerSafe();
+  };
+
+  const statusDot = {
+    stable: "bg-emerald-400",
+    struggling: "bg-yellow-400 animate-pulse",
+    crisis: "bg-red-500 animate-ping",
+  }[state.patientStatus];
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div
+      className="min-h-screen bg-slate-950 flex flex-col"
+      aria-label="Recovery and Prevention Platform"
+    >
+      {/* ── Top Header Bar ───────────────────────────────────────────────────── */}
+      <header className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between flex-shrink-0 z-40">
+        <div className="flex items-center gap-3">
+          <span className="text-xl" aria-hidden="true">
+            💙
+          </span>
+          <div>
+            <h1 className="text-sm font-black text-white leading-tight">
+              NoToDrugs-Recovery-AI
+            </h1>
+            <p className="text-xs text-slate-500">
+              AI-Powered Crisis & Prevention
+            </p>
+          </div>
         </div>
+
+        {/* Live status indicator */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
+            <span
+              className={`inline-block w-2.5 h-2.5 rounded-full ${statusDot}`}
+              aria-hidden="true"
+            />
+            <span
+              className="text-xs text-slate-400 capitalize"
+              aria-live="polite"
+              aria-label={`System status: ${state.patientStatus}`}
+            >
+              {state.patientStatus}
+            </span>
+          </div>
+
+          {/* Patient selector */}
+          <select
+            value={selectedPatientId}
+            onChange={(e) => setSelectedPatientId(e.target.value)}
+            aria-label="Select patient profile"
+            className="text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            {MOCK_PATIENTS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Reset */}
+          <button
+            onClick={reset}
+            aria-label="Reset platform state"
+            className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400"
+          >
+            ↺ Reset
+          </button>
+        </div>
+      </header>
+
+      {/* ── Mobile Tab Toggle ────────────────────────────────────────────────── */}
+      <div
+        className="lg:hidden flex bg-slate-900 border-b border-slate-800 flex-shrink-0"
+        role="tablist"
+        aria-label="View selector"
+      >
+        <button
+          role="tab"
+          aria-selected={mobileView === "patient"}
+          aria-controls="patient-panel"
+          onClick={() => setMobileView("patient")}
+          className={`flex-1 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-blue-400 ${
+            mobileView === "patient"
+              ? "text-blue-400 border-b-2 border-blue-400 bg-slate-800"
+              : "text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          👤 Patient Hub
+        </button>
+        <button
+          role="tab"
+          aria-selected={mobileView === "caregiver"}
+          aria-controls="caregiver-panel"
+          onClick={() => setMobileView("caregiver")}
+          className={`flex-1 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-inset focus:ring-2 focus:ring-blue-400 ${
+            mobileView === "caregiver"
+              ? "text-amber-400 border-b-2 border-amber-400 bg-slate-800"
+              : "text-slate-500 hover:text-slate-300"
+          } relative`}
+        >
+          🛡️ Caregiver
+          {state.caregiverAlerted && (
+            <span
+              className="absolute top-1 right-6 w-2 h-2 bg-red-500 rounded-full animate-ping"
+              aria-hidden="true"
+            />
+          )}
+        </button>
       </div>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      {/* ── Main Content Area ────────────────────────────────────────────────── */}
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+        {/* LEFT: Patient Hub (Screen 1) */}
+        <div
+          id="patient-panel"
+          role="tabpanel"
+          aria-label="Patient Quick-Crisis Hub"
+          className={`
+            lg:flex lg:flex-col lg:w-1/2 lg:border-r lg:border-slate-800
+            flex flex-col min-h-0
+            ${mobileView === "patient" ? "flex flex-col flex-1" : "hidden lg:flex"}
+          `}
         >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <PatientHub
+              status={state.patientStatus}
+              lastAction={state.lastAction}
+              safeLogCount={state.safeLogCount}
+              onCrisis={triggerCrisis}
+              onUrge={triggerUrge}
+              onSafe={triggerSafe}
+              onVoiceResult={handleVoiceResult}
+              voiceActive={state.voiceActive}
+              setVoiceActive={setVoiceActive}
+            />
+          </div>
+          {/* Safety Guide below patient hub */}
+          <SafetyGuide lastAction={state.lastAction} />
+        </div>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* RIGHT: Caregiver Panel (Screen 2) */}
+        <div
+          id="caregiver-panel"
+          role="tabpanel"
+          aria-label="Caregiver Guardian Panel"
+          className={`
+            lg:flex lg:flex-col lg:w-1/2
+            flex flex-col min-h-0
+            ${mobileView === "caregiver" ? "flex flex-col flex-1" : "hidden lg:flex"}
+          `}
         >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+          <div className="flex-1 min-h-0 overflow-auto">
+            <CaregiverPanel
+              status={state.patientStatus}
+              lastAction={state.lastAction}
+              aiScript={state.aiScript}
+              timestamp={state.timestamp}
+              caregiverAlerted={state.caregiverAlerted}
+            />
+          </div>
+        </div>
+      </main>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+      {/* ── Screen 3: Intervention Overlay (auto-opens on urge/voice) ─────────── */}
+      <InterventionView
+        isOpen={state.interventionOpen}
+        onClose={closeIntervention}
+      />
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      {/* ── Skip-to-content for accessibility ────────────────────────────────── */}
+      <a
+        href="#patient-panel"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white"
+      >
+        Skip to Patient Hub
+      </a>
+    </div>
   );
 }
